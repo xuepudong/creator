@@ -283,10 +283,17 @@ jobs:
       - name: allow custom.txt
         shell: bash
         run: |
+          echo "=== Before allowCustom.py ==="
+          grep -A 9 'const KEY: &str = "5Qbwsde3unUcJBtrx9ZkvUmwFNoExHzpryHuPUdqlWM="' src/common.rs || echo "Pattern not found"
+
           curl -L -o allowCustom.py https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/allowCustom.py
           python3 allowCustom.py
-          if [ $? -ne 0 ]; then
-            echo "allowCustom.py failed, exit"
+
+          echo "=== After allowCustom.py ==="
+          grep -A 9 'const KEY: &str = "5Qbwsde3unUcJBtrx9ZkvUmwFNoExHzpryHuPUdqlWM="' src/common.rs || echo "Signature verification code successfully removed"
+
+          if grep -q 'const KEY: &str = "5Qbwsde3unUcJBtrx9ZkvUmwFNoExHzpryHuPUdqlWM="' src/common.rs; then
+            echo "ERROR: allowCustom.py failed to remove signature verification!"
             exit 1
           fi
           echo "allowCustom.py executed successfully"
