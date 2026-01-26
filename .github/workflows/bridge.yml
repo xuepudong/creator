@@ -6,10 +6,10 @@ on:
   workflow_call:
     inputs:
       version:
-        description: 'Rustdesk Version'
-        required: true
-        default: '1.3.1'
+        description: 'Version to build'
+        required: false
         type: string
+        default: 'master'
 
 env:
   CARGO_EXPAND_VERSION: "1.0.95"
@@ -26,23 +26,13 @@ jobs:
         job:
           - {
               target: x86_64-unknown-linux-gnu,
-              os: ubuntu-24.04,
+              os: ubuntu-22.04,
               extra-build-args: "",
             }
     steps:
       - name: Checkout source code
-        if: ${{ inputs.version != 'master' }}
         uses: actions/checkout@v4
         with:
-          repository: rustdesk/rustdesk
-          ref: refs/tags/${{ inputs.version }}
-          submodules: recursive
-        
-      - name: Checkout source code
-        if: ${{ inputs.version == 'master' }}
-        uses: actions/checkout@v4
-        with:
-          repository: rustdesk/rustdesk
           submodules: recursive
 
       - name: Install prerequisites

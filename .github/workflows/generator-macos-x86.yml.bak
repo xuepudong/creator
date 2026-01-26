@@ -70,7 +70,6 @@ env:
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
   # vcpkg version: 2024.07.12 (updated to latest)
   VCPKG_COMMIT_ID: "120deac3062162151622ca4860575a33844ba10b"
-  ARMV7_VCPKG_COMMIT_ID: "6f29f12e82a8293156836ad81cc9bf5af41fe836"
   VERSION: "${{ fromJson(inputs.extras).version }}"
   NDK_VERSION: "r27c"
   #signing keys env variable checks
@@ -101,11 +100,11 @@ jobs:
       matrix:
         job:
           - {
-              target: aarch64-apple-darwin,
-              os: macos-latest,
+              target: x86_64-apple-darwin,
+              os: macos-15-intel,
               extra-build-args: "",
-              arch: aarch64,
-              vcpkg-triplet: arm64-osx,
+              arch: x86_64,
+              vcpkg-triplet: x64-osx,
             }
           
     steps:
@@ -133,22 +132,36 @@ jobs:
           data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
 
       - name: Checkout source code
+        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
-          repository: xuepudong/RuijieDesk
-          ref: master
-          submodules: recursive
+            repository: xuepudong/RuijieDesk
+            ref: refs/tags/${{ env.VERSION }}
+            submodules: recursive
+
       - name: Checkout source code
+        if: ${{ env.VERSION == 'master' }}
         uses: actions/checkout@v4
         with:
-          repository: xuepudong/RuijieDesk
-          ref: master
-          submodules: recursive
-      - name: Install imagemagick and potrace and nasm and and
+            repository: xuepudong/RuijieDesk
+            submodules: recursive
+
+      - name: Install imagemagick and potrace and cmake and gcc and wget and ninja
         shell: bash
         run: |
-          brew install imagemagick potrace nasm cmake gcc wget ninja
+          brew install imagemagick potrace cmake gcc wget ninja
           echo "$(brew --prefix imagemagick)/bin" >> $GITHUB_PATH
+
+      - name: Install NASM
+        run: |
+          # Install NASM 2.16.x from official release.
+          # Do NOT use `brew install nasm` which installs NASM 3.x.
+          # NASM 3.x is a complete rewrite with incompatible CLI options and removed features.
+          # aom and other multimedia libraries require NASM 2.x for x86/x86_64 assembly.
+          wget https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/macosx/nasm-2.16.03-macosx.zip
+          unzip nasm-2.16.03-macosx.zip
+          sudo cp nasm-2.16.03/nasm /usr/local/bin/nasm
+          nasm --version
 
       - name: Update macOS Info.plist and settings
         continue-on-error: false
@@ -293,7 +306,7 @@ jobs:
         shell: bash
         run: |
           cd "$(dirname "$(which flutter)")"
-          # https://github.com/flutter/flutter/issues/133533
+          # https://github.com/flutter/flutter/issues/1.3.43
           sed -i -e 's/_setFramesEnabledState(false);/\/\/_setFramesEnabledState(false);/g' ../packages/flutter/lib/src/scheduler/binding.dart
           grep -n '_setFramesEnabledState(false);' ../packages/flutter/lib/src/scheduler/binding.dart
         
@@ -640,6 +653,9 @@ jobs:
           echo -n "${{ inputs.custom }}" | cat > ./rustdesk/custom.txt
 
       - name: Build rustdesk
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "13.0"
+          CGO_ENABLED: "1"
         run: |
           if [ "${{ matrix.job.target }}" = "aarch64-apple-darwin" ]; then
             MIN_MACOS_VERSION="12.3"
@@ -699,17 +715,6 @@ jobs:
           else
               brew install pkg-config
           fi
-
-      - name: Install NASM
-        run: |
-          # Install NASM 2.16.x from official release.
-          # Do NOT use `brew install nasm` which installs NASM 3.x.
-          # NASM 3.x is a complete rewrite with incompatible CLI options and removed features.
-          # aom and other multimedia libraries require NASM 2.x for x86/x86_64 assembly.
-          wget https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/macosx/nasm-2.16.03-macosx.zip
-          unzip nasm-2.16.03-macosx.zip
-          sudo cp nasm-2.16.03/nasm /usr/local/bin/nasm
-          nasm --version    
 
       - name: Report Status
         uses: fjogeleit/http-request-action@v1

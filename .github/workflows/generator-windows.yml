@@ -86,8 +86,6 @@ env:
 jobs:
   generate-bridge:
     uses: ./.github/workflows/bridge.yml
-    with:
-      version: ${{ fromJson(inputs.extras).version }}
 
   build-RustDeskTempTopMostWindow:
     uses: ./.github/workflows/third-party-RustDeskTempTopMostWindow.yml
@@ -97,8 +95,6 @@ jobs:
       configuration: Release
       platform: x64
       target_version: Windows10
-    strategy:
-      fail-fast: false
 
   build-for-windows-flutter:
     name: Build Windows
@@ -145,18 +141,10 @@ jobs:
           data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
 
       - name: Checkout source code
-        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
           repository: xuepudong/RuijieDesk
-          ref: refs/tags/${{ env.VERSION }}
-          submodules: recursive
-
-      - name: Checkout source code
-        if: ${{ env.VERSION == 'master' }}
-        uses: actions/checkout@v4
-        with:
-          repository: xuepudong/RuijieDesk
+          ref: master
           submodules: recursive
 
       - name: Restore bridge files

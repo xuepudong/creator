@@ -155,17 +155,20 @@ jobs:
           sudo apt-get install -y imagemagick
 
       - name: Checkout source code
+        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
           repository: xuepudong/RuijieDesk
-          ref: master
+          ref: refs/tags/${{ env.VERSION }}
           submodules: recursive
+
       - name: Checkout source code
+        if: ${{ env.VERSION == 'master' }}
         uses: actions/checkout@v4
         with:
           repository: xuepudong/RuijieDesk
-          ref: master
           submodules: recursive
+
       - name: Set Swap Space
         if: ${{ matrix.job.arch == 'x86_64' }}
         uses: pierotofy/set-swap-space@master
@@ -712,17 +715,20 @@ jobs:
           - { target: aarch64-unknown-linux-gnu, arch: aarch64 }
     steps:
       - name: Checkout source code
+        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
           repository: xuepudong/RuijieDesk
-          ref: master
+          ref: refs/tags/${{ env.VERSION }}
           submodules: recursive
+
       - name: Checkout source code
+        if: ${{ env.VERSION == 'master' }}
         uses: actions/checkout@v4
         with:
           repository: xuepudong/RuijieDesk
-          ref: master
           submodules: recursive
+
       - name: Download Binary
         uses: actions/download-artifact@master
         with:
@@ -784,17 +790,20 @@ jobs:
             }
     steps:
       - name: Checkout source code
+        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
           repository: xuepudong/RuijieDesk
-          ref: master
+          ref: refs/tags/${{ env.VERSION }}
           submodules: recursive
+
       - name: Checkout source code
+        if: ${{ env.VERSION == 'master' }}
         uses: actions/checkout@v4
         with:
           repository: xuepudong/RuijieDesk
-          ref: master
           submodules: recursive
+
       - name: Download Binary
         uses: actions/download-artifact@master
         with:

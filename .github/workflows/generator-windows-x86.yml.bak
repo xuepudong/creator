@@ -143,17 +143,20 @@ jobs:
           data: '{"uuid": "${{ inputs.uuid }}", "status": "5% complete"}'
 
       - name: Checkout source code
+        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
           repository: xuepudong/RuijieDesk
-          ref: master
+          ref: refs/tags/${{ env.VERSION }}
           submodules: recursive
+
       - name: Checkout source code
+        if: ${{ env.VERSION == 'master' }}
         uses: actions/checkout@v4
         with:
           repository: xuepudong/RuijieDesk
-          ref: master
           submodules: recursive
+
       - name: Restore bridge files
         uses: actions/download-artifact@master
         with:

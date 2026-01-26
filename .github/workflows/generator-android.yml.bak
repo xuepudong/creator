@@ -198,17 +198,20 @@ jobs:
                wget
 
       - name: Checkout source code
+        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
           repository: xuepudong/RuijieDesk
-          ref: master
-          submodules: recursive       
-      - name: Checkout source code
-        uses: actions/checkout@v4
-        with:
-          repository: xuepudong/RuijieDesk
-          ref: master
+          ref: refs/tags/${{ env.VERSION }}
           submodules: recursive
+       
+      - name: Checkout source code
+        if: ${{ env.VERSION == 'master' }}
+        uses: actions/checkout@v4
+        with:
+          repository: xuepudong/RuijieDesk
+          submodules: recursive
+
       - name: Install flutter
         uses: subosito/flutter-action@v2
         with:
