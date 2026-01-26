@@ -135,7 +135,7 @@ jobs:
         if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
-            repository: rustdesk/rustdesk
+            repository: xuepudong/RuijieDesk
             ref: refs/tags/${{ env.VERSION }}
             submodules: recursive
 
@@ -143,7 +143,7 @@ jobs:
         if: ${{ env.VERSION == 'master' }}
         uses: actions/checkout@v4
         with:
-            repository: rustdesk/rustdesk
+            repository: xuepudong/RuijieDesk
             submodules: recursive
 
       - name: Install imagemagick and potrace and cmake and gcc and wget and ninja
