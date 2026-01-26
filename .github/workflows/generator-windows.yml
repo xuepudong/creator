@@ -277,7 +277,7 @@ jobs:
         continue-on-error: true
         run: |
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/allowCustom.py -OutFile allowCustom.py
-          git apply allowCustom.py
+          python allowCustom.py
           # Remove Setup Server Tip
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeSetupServerTip.diff -OutFile removeSetupServerTip.diff
           git apply removeSetupServerTip.diff
