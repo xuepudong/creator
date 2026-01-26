@@ -24,6 +24,7 @@ def generator_view(request):
         if form.is_valid():
             platform = form.cleaned_data['platform']
             version = form.cleaned_data['version']
+            ui_mode = form.cleaned_data['ui_mode']
             delayFix = form.cleaned_data['delayFix']
             cycleMonitor = form.cleaned_data['cycleMonitor']
             xOffline = form.cleaned_data['xOffline']
@@ -35,6 +36,10 @@ def generator_view(request):
             apiServer = form.cleaned_data['apiServer']
             urlLink = form.cleaned_data['urlLink']
             downloadLink = form.cleaned_data['downloadLink']
+            updateLink = form.cleaned_data.get('updateLink', '')
+            unlockPin = form.cleaned_data.get('unlockPin', '')
+            image_quality = form.cleaned_data.get('image_quality', 'balanced')
+            custom_fps = form.cleaned_data.get('custom_fps', '30')
             if not server:
                 server = 'rs-ny.rustdesk.com' #default rustdesk server
             if not key:
@@ -95,6 +100,36 @@ def generator_view(request):
             enableCamera = form.cleaned_data['enableCamera']
             enableTerminal = form.cleaned_data['enableTerminal']
 
+            # 新增主控端功能
+            hide_chat_voice = form.cleaned_data.get('hide_chat_voice', False)
+            viewOnly = form.cleaned_data.get('viewOnly', False)
+            collapse_toolbar = form.cleaned_data.get('collapse_toolbar', False)
+            privacy_mode = form.cleaned_data.get('privacy_mode', False)
+            hide_username_on_card = form.cleaned_data.get('hide_username_on_card', False)
+
+            # 新增被控端功能
+            hideTray = form.cleaned_data.get('hideTray', False)
+            hidePassword = form.cleaned_data.get('hidePassword', False)
+            hideMenuBar = form.cleaned_data.get('hideMenuBar', False)
+            hideQuit = form.cleaned_data.get('hideQuit', False)
+            addcopy = form.cleaned_data.get('addcopy', False)
+            applyprivacy = form.cleaned_data.get('applyprivacy', False)
+            passpolicy = form.cleaned_data.get('passpolicy', False)
+            allowHostnameAsId = form.cleaned_data.get('allowHostnameAsId', False)
+            hideService_Start_Stop = form.cleaned_data.get('hideService_Start_Stop', False)
+
+            # 新增通用功能
+            disable_check_update = form.cleaned_data.get('disable_check_update', True)
+            no_uninstall = form.cleaned_data.get('no_uninstall', False)
+            disable_install = form.cleaned_data.get('disable_install', False)
+            allowD3dRender = form.cleaned_data.get('allowD3dRender', False)
+            use_texture_render = form.cleaned_data.get('use_texture_render', False)
+            pre_elevate_service = form.cleaned_data.get('pre_elevate_service', False)
+            sync_init_clipboard = form.cleaned_data.get('sync_init_clipboard', False)
+            hide_powered_by_me = form.cleaned_data.get('hide_powered_by_me', True)
+            remove_preset_password_warning = form.cleaned_data.get('remove_preset_password_warning', True)
+            hide_account = form.cleaned_data.get('hide_account', False)
+
             filename = re.sub(r'[^\w\s-]', '_', filename).strip()
             myuuid = str(uuid.uuid4())
             protocol = _settings.PROTOCOL
@@ -116,6 +151,18 @@ def generator_view(request):
             except:
                 print("failed to get logo")
                 logolink = "false"
+
+            try:
+                privacy_wallpaper = form.cleaned_data.get('privacy_wallpaper')
+                if not privacy_wallpaper:
+                    privacy_wallpaper = form.cleaned_data.get('privacy_wallpaper_base64')
+                if privacy_wallpaper:
+                    privacylink = save_png(privacy_wallpaper,myuuid,full_url,"privacy_wallpaper.png")
+                else:
+                    privacylink = "false"
+            except:
+                print("failed to get privacy wallpaper")
+                privacylink = "false"
 
             ###create the custom.txt json here and send in as inputs below
             decodedCustom = {}
@@ -218,6 +265,85 @@ def generator_view(request):
             for line in overrideManual.splitlines():
                 k, value = line.split('=')
                 decodedCustom['override-settings'][k.strip()] = value.strip()
+
+            # 添加新功能字段
+            if unlockPin:
+                decodedCustom['unlock-pin'] = unlockPin
+
+            if image_quality:
+                if permissionsDorO == "default":
+                    decodedCustom['default-settings']['image-quality'] = image_quality
+                else:
+                    decodedCustom['override-settings']['image-quality'] = image_quality
+
+            if custom_fps and int(custom_fps) > 30:
+                if permissionsDorO == "default":
+                    decodedCustom['default-settings']['custom-fps'] = custom_fps
+                else:
+                    decodedCustom['override-settings']['custom-fps'] = custom_fps
+
+            # 主控端功能
+            if hide_chat_voice:
+                decodedCustom['hide-chat-voice'] = 'Y'
+            if viewOnly:
+                if permissionsDorO == "default":
+                    decodedCustom['default-settings']['view-only'] = 'Y'
+                else:
+                    decodedCustom['override-settings']['view-only'] = 'Y'
+            if collapse_toolbar:
+                if permissionsDorO == "default":
+                    decodedCustom['default-settings']['collapse-toolbar'] = 'Y'
+                else:
+                    decodedCustom['override-settings']['collapse-toolbar'] = 'Y'
+            if privacy_mode:
+                if permissionsDorO == "default":
+                    decodedCustom['default-settings']['privacy-mode'] = 'Y'
+                else:
+                    decodedCustom['override-settings']['privacy-mode'] = 'Y'
+            if hide_username_on_card:
+                decodedCustom['hide-username-on-card'] = 'Y'
+
+            # 被控端功能
+            if hideTray:
+                decodedCustom['hide-tray'] = 'Y'
+            if hidePassword:
+                decodedCustom['hide-password'] = 'Y'
+            if hideMenuBar:
+                decodedCustom['hide-menu-bar'] = 'Y'
+            if hideQuit:
+                decodedCustom['hide-quit'] = 'Y'
+            if addcopy:
+                decodedCustom['add-copy'] = 'Y'
+            if applyprivacy:
+                decodedCustom['apply-privacy'] = 'Y'
+            if passpolicy:
+                decodedCustom['pass-policy'] = 'Y'
+            if allowHostnameAsId:
+                decodedCustom['allow-hostname-as-id'] = 'Y'
+            if hideService_Start_Stop:
+                decodedCustom['hide-service-start-stop'] = 'Y'
+
+            # 通用功能
+            if disable_check_update:
+                decodedCustom['disable-check-update'] = 'Y'
+            if no_uninstall:
+                decodedCustom['no-uninstall'] = 'Y'
+            if disable_install:
+                decodedCustom['disable-install'] = 'Y'
+            if allowD3dRender:
+                decodedCustom['allow-d3d-render'] = 'Y'
+            if use_texture_render:
+                decodedCustom['use-texture-render'] = 'Y'
+            if pre_elevate_service:
+                decodedCustom['pre-elevate-service'] = 'Y'
+            if sync_init_clipboard:
+                decodedCustom['sync-init-clipboard'] = 'Y'
+            if hide_powered_by_me:
+                decodedCustom['hide-powered-by-me'] = 'Y'
+            if remove_preset_password_warning:
+                decodedCustom['remove-preset-password-warning'] = 'Y'
+            if hide_account:
+                decodedCustom['hide-account'] = 'Y'
             
             decodedCustomJson = json.dumps(decodedCustom)
 
@@ -228,9 +354,9 @@ def generator_view(request):
             #github limits inputs to 10, so lump extras into one with json
             extras = {}
             extras['genurl'] = _settings.GENURL
-            #extras['runasadmin'] = runasadmin
             extras['urlLink'] = urlLink
             extras['downloadLink'] = downloadLink
+            extras['updateLink'] = updateLink if updateLink else downloadLink
             extras['delayFix'] = 'true' if delayFix else 'false'
             extras['version'] = version
             extras['rdgen'] = 'true'
@@ -242,19 +368,21 @@ def generator_view(request):
             extras['compname'] = compname
             extras['androidappid'] = androidappid
             extras['slogan'] = slogan if slogan else f"Developed By {appname}"
+            extras['ui_mode'] = 'true' if ui_mode else 'false'
+            extras['privacylink'] = privacylink
             extra_input = json.dumps(extras)
 
             ####from here run the github action, we need user, repo, access token.
             if platform == 'windows':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windows.yml/dispatches' 
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windows.yml/dispatches'
+            elif platform == 'windows-x86':
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windows-x86.yml/dispatches'
             elif platform == 'linux':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-linux.yml/dispatches'  
+                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-linux.yml/dispatches'
             elif platform == 'android':
                 url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-android.yml/dispatches'
             elif platform == 'macos':
                 url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-macos.yml/dispatches'
-            elif platform == 'macos-x86':
-                url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-macos-x86.yml/dispatches'   
             else:
                 url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windows.yml/dispatches'
                 

@@ -1,62 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title id="pageTitle">Build Generated Successfully</title>
+    <meta charset="UTF-8">
+    <title id="pageTitle">构建成功</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
             text-align: center;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1e3e 100%);
+            color: #ffffff;
         }
         .platform-logo {
             width: 150px;
             height: 150px;
             margin-bottom: 30px;
             display: none;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
+            filter: drop-shadow(0 10px 30px rgba(79, 209, 197, 0.5));
             transition: transform 0.3s ease;
+            animation: success-bounce 0.6s ease-out;
         }
-        .platform-logo:hover {
-            transform: scale(1.1);
+        @keyframes success-bounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
         .success-text {
-            color: #333;
-            font-weight: 600;
+            color: #4fd1c5;
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(79, 209, 197, 0.5);
+        }
+        .success-icon {
+            font-size: 4rem;
+            color: #4fd1c5;
             margin-bottom: 20px;
+            animation: check-appear 0.5s ease-out;
+        }
+        @keyframes check-appear {
+            0% { transform: scale(0) rotate(-180deg); }
+            100% { transform: scale(1) rotate(0deg); }
         }
         .download-section {
-            background: rgba(255,255,255,0.8);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(79, 209, 197, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             margin-top: 20px;
+            max-width: 600px;
+            width: 100%;
         }
         .download-link {
-            display: block;
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 15px 0;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
         .download-link:hover {
-            background-color: #2980b9;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+            color: white;
         }
-        .platform-note {
-            color: #666;
-            font-size: 0.9em;
-            margin-top: 15px;
-            background: rgba(255,255,255,0.7);
-            padding: 10px;
-            border-radius: 8px;
+        .download-link i {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        .download-link .file-size {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        .note {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            color: #ffc107;
+            max-width: 600px;
+        }
+        .note i {
+            margin-right: 10px;
+        }
+        @media (max-width: 768px) {
+            .success-text {
+                font-size: 1.5rem;
+            }
+            .download-section {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -123,73 +171,103 @@
         <text x="128" y="200" font-family="Arial" font-size="50" font-weight="bold" text-anchor="middle" fill="white">Android</text>
     </svg>
        
+    <i class="fas fa-check-circle success-icon"></i>
+
     <div>
-        <h2 class="success-text">Build Generated Successfully</h2>
+        <h2 class="success-text">
+            <i class="fas fa-rocket"></i> 客户端构建成功！
+        </h2>
         <div class="download-section">
-            {% if platform == 'windows' %}
-                <a href='/download?filename={{filename}}.exe&uuid={{uuid}}' class="download-link">Download {{filename}}.exe</a>
-                <a href='/download?filename={{filename}}.msi&uuid={{uuid}}' class="download-link">Download {{filename}}.msi</a>
+            <h3 style="margin-top: 0; color: #4fd1c5;">
+                <i class="fas fa-download"></i> 下载您的客户端
+            </h3>
+            {% if platform == 'windows' or platform == 'windows-x86' %}
+                <a href='/download?filename={{filename}}.exe&uuid={{uuid}}' class="download-link">
+                    <span><i class="fas fa-file-code"></i> {{filename}}.exe</span>
+                    <span class="file-size">可执行文件</span>
+                </a>
+                <a href='/download?filename={{filename}}.msi&uuid={{uuid}}' class="download-link">
+                    <span><i class="fas fa-box"></i> {{filename}}.msi</span>
+                    <span class="file-size">安装程序</span>
+                </a>
             {% elif platform == 'linux' %}
-                <a href='/download?filename={{filename}}.deb&uuid={{uuid}}' class="download-link">Download {{filename}}.deb</a>
-                <a href='/download?filename={{filename}}.rpm&uuid={{uuid}}' class="download-link">Download {{filename}}.rpm</a>
-                <a href='/download?filename={{filename}}-suse.rpm&uuid={{uuid}}' class="download-link">Download {{filename}}-suse.rpm</a>
-                <a href='/download?filename={{filename}}.pkg.tar.zst&uuid={{uuid}}' class="download-link">Download {{filename}}.pkg.tar.zst</a>
-                {% elif platform == 'android' %}
-                <a href='/download?filename={{filename}}-aarch64.apk&uuid={{uuid}}' class="download-link">Download {{filename}}-aarch64.apk</a>
-                <a href='/download?filename={{filename}}-x86_64.apk&uuid={{uuid}}' class="download-link">Download {{filename}}-x86_64.apk</a>
-                <a href='/download?filename={{filename}}-armv7.apk&uuid={{uuid}}' class="download-link">Download {{filename}}-armv7.apk</a>
+                <a href='/download?filename={{filename}}.deb&uuid={{uuid}}' class="download-link">
+                    <span><i class="fab fa-ubuntu"></i> {{filename}}.deb</span>
+                    <span class="file-size">Debian/Ubuntu</span>
+                </a>
+                <a href='/download?filename={{filename}}.rpm&uuid={{uuid}}' class="download-link">
+                    <span><i class="fab fa-redhat"></i> {{filename}}.rpm</span>
+                    <span class="file-size">RedHat/Fedora</span>
+                </a>
+                <a href='/download?filename={{filename}}-suse.rpm&uuid={{uuid}}' class="download-link">
+                    <span><i class="fab fa-suse"></i> {{filename}}-suse.rpm</span>
+                    <span class="file-size">openSUSE</span>
+                </a>
+                <a href='/download?filename={{filename}}.pkg.tar.zst&uuid={{uuid}}' class="download-link">
+                    <span><i class="fab fa-linux"></i> {{filename}}.pkg.tar.zst</span>
+                    <span class="file-size">Arch Linux</span>
+                </a>
+            {% elif platform == 'android' %}
+                <a href='/download?filename={{filename}}-aarch64.apk&uuid={{uuid}}' class="download-link">
+                    <span><i class="fab fa-android"></i> {{filename}}-aarch64.apk</span>
+                    <span class="file-size">ARM64</span>
+                </a>
+                <a href='/download?filename={{filename}}-x86_64.apk&uuid={{uuid}}' class="download-link">
+                    <span><i class="fab fa-android"></i> {{filename}}-x86_64.apk</span>
+                    <span class="file-size">x86_64</span>
+                </a>
+                <a href='/download?filename={{filename}}-armv7.apk&uuid={{uuid}}' class="download-link">
+                    <span><i class="fab fa-android"></i> {{filename}}-armv7.apk</span>
+                    <span class="file-size">ARMv7</span>
+                </a>
             {% elif platform == 'macos' %}
-                <a href='/download?filename={{filename}}.dmg&uuid={{uuid}}' class="download-link">Download {{filename}}.dmg</a>
-            {% elif platform == 'macos-x86' %}
-                <a href='/download?filename={{filename}}.dmg&uuid={{uuid}}' class="download-link">Download {{filename}}.dmg</a>
+                <a href='/download?filename={{filename}}.dmg&uuid={{uuid}}' class="download-link">
+                    <span><i class="fab fa-apple"></i> {{filename}}.dmg</span>
+                    <span class="file-size">macOS 安装镜像</span>
+                </a>
             {% else %}
-                <p>Error: No file generated</p>
+                <p style="color: #ff6b6b;">错误：未能生成文件</p>
             {% endif %}
         </div>
     </div>
 
-    <div id="platformNote" class="platform-note"></div>
+    <div id="platformNote" class="note"></div>
 
     <script>
         function updatePlatformUI() {
             const platform = '{{platform}}'.toLowerCase();
             const platformLogos = {
                 'windows': document.getElementById('windowsLogo'),
+                'windows-x86': document.getElementById('windowsLogo'),
                 'macos': document.getElementById('macosLogo'),
                 'linux': document.getElementById('linuxLogo'),
-                'android': document.getElementById('androidLogo'),
-                'macos-x86': document.getElementById('macosLogo')
+                'android': document.getElementById('androidLogo')
             };
             const platformNote = document.getElementById('platformNote');
 
             // Reset all logos
-            Object.values(platformLogos).forEach(logo => logo.style.display = 'none');
+            Object.values(platformLogos).forEach(logo => logo && (logo.style.display = 'none'));
 
             // Set appropriate logo and title
             if (platform === 'macos') {
-                document.getElementById('pageTitle').textContent = 'MacOS Build Generated';
+                document.getElementById('pageTitle').textContent = 'macOS 客户端构建完成';
                 platformLogos.macos.style.display = 'block';
-                platformNote.textContent = 'Note: For macOS, you may need to adjust security settings to run the application.';
+                platformNote.innerHTML = '<i class="fas fa-info-circle"></i> <strong>提示：</strong>macOS 系统可能需要调整安全设置才能运行此应用程序';
                 platformNote.style.display = 'block';
-            } else if (platform === 'windows') {
-                document.getElementById('pageTitle').textContent = 'Windows Build Generated';
+            } else if (platform === 'windows' || platform === 'windows-x86') {
+                document.getElementById('pageTitle').textContent = 'Windows 客户端构建完成';
                 platformLogos.windows.style.display = 'block';
-                platformNote.textContent = 'Note: You might need to disable SmartScreen or adjust Windows security settings.';
+                platformNote.innerHTML = '<i class="fas fa-info-circle"></i> <strong>提示：</strong>可能需要禁用 SmartScreen 或调整 Windows 安全设置';
                 platformNote.style.display = 'block';
             } else if (platform === 'linux') {
-                document.getElementById('pageTitle').textContent = 'Linux Build Generated';
+                document.getElementById('pageTitle').textContent = 'Linux 客户端构建完成';
                 platformLogos.linux.style.display = 'block';
-                platformNote.textContent = 'Note: Ensure you have the necessary dependencies installed.';
+                platformNote.innerHTML = '<i class="fas fa-info-circle"></i> <strong>提示：</strong>请确保已安装必要的依赖项';
                 platformNote.style.display = 'block';
             } else if (platform === 'android') {
-                document.getElementById('pageTitle').textContent = 'Android Build Generated';
+                document.getElementById('pageTitle').textContent = 'Android 客户端构建完成';
                 platformLogos.android.style.display = 'block';
-                platformNote.textContent = 'Note: You may need to enable "Unknown Sources" in device settings.';
-                platformNote.style.display = 'block';
-            } else if (platform === 'macos-x86') {
-                document.getElementById('pageTitle').textContent = 'MacOSX86 Build Generated';
-                platformLogos.macos.style.display = 'block';
-                platformNote.textContent = 'Note: For macOSX86, you may need to adjust security settings to run the application.';
+                platformNote.innerHTML = '<i class="fas fa-info-circle"></i> <strong>提示：</strong>可能需要在设备设置中启用"未知来源"';
                 platformNote.style.display = 'block';
             }
         }
