@@ -79,6 +79,8 @@ env:
   UPLOAD_ARTIFACT: 'true'
   SIGN_BASE_URL: "${{ secrets.SIGN_BASE_URL }}"
   STATUS_URL: "${{ secrets.GENURL }}/updategh"
+  # Check if disable-install is enabled (only build portable, skip MSI)
+  DISABLE_INSTALL: ${{ contains(inputs.custom, 'disable-install') && fromJson(inputs.custom)['disable-install'] == 'Y' }}
 
 
 jobs:
@@ -729,7 +731,7 @@ jobs:
 
       - name: Build msi
         continue-on-error: true
-        if: env.UPLOAD_ARTIFACT == 'true'
+        if: env.UPLOAD_ARTIFACT == 'true' && env.DISABLE_INSTALL != 'true'
         shell: pwsh
         run: |
           echo "Building MSI with version ${{ env.VERSION }}..."
@@ -791,9 +793,17 @@ jobs:
 
       - name: zip exe and msi
         continue-on-error: true
+        if: env.DISABLE_INSTALL != 'true'
         shell: pwsh
         run: |
           Compress-Archive -Path ./SignOutput/*.exe, ./SignOutput/*.msi -DestinationPath ./SignOutput/unsigned_files.zip -CompressionLevel Fastest
+
+      - name: zip exe only (portable only mode)
+        continue-on-error: true
+        if: env.DISABLE_INSTALL == 'true'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path ./SignOutput/*.exe -DestinationPath ./SignOutput/unsigned_files.zip -CompressionLevel Fastest
 
       
       - name: sign exe and msi
@@ -824,6 +834,7 @@ jobs:
 
       - name: rename rustdesk.msi to filename.msi
         continue-on-error: true
+        if: env.DISABLE_INSTALL != 'true'
         run: |
           mv ./SignOutput/rustdesk.msi "./SignOutput/${{ inputs.filename }}.msi" || echo "rustdesk"
   
@@ -833,14 +844,18 @@ jobs:
         shell: bash
         run: |
           curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./SignOutput/${{ inputs.filename }}.exe" -F "uuid=${{ inputs.uuid }}" ${{ secrets.GENURL }}/save_custom_client
-          curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./SignOutput/${{ inputs.filename }}.msi" -F "uuid=${{ inputs.uuid }}" ${{ secrets.GENURL }}/save_custom_client || true
+          if [ "$DISABLE_INSTALL" != "true" ]; then
+            curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./SignOutput/${{ inputs.filename }}.msi" -F "uuid=${{ inputs.uuid }}" ${{ secrets.GENURL }}/save_custom_client || true
+          fi
 
       - name: send file to api server
         if: ${{ fromJson(inputs.extras).rdgen == 'false' }}
         shell: bash
         run: |
           curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./SignOutput/${{ inputs.filename }}.exe" ${{ inputs.apiServer }}/api/save_custom_client
-          curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./SignOutput/${{ inputs.filename }}.msi" ${{ inputs.apiServer }}/api/save_custom_client || true
+          if [ "$DISABLE_INSTALL" != "true" ]; then
+            curl -i -X POST -H "Content-Type: multipart/form-data" -H "Authorization: Bearer ${{ fromJson(inputs.extras).token }}" -F "file=@./SignOutput/${{ inputs.filename }}.msi" ${{ inputs.apiServer }}/api/save_custom_client || true
+          fi
 
       - name: Report Status
         uses: fjogeleit/http-request-action@v1
