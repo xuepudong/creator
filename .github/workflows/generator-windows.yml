@@ -294,6 +294,22 @@ jobs:
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/VenimK/creator/refs/heads/master/.github/patches/removeSetupServerTip.diff -OutFile removeSetupServerTip.diff
           git apply removeSetupServerTip.diff
 
+      - name: Download privacy wallpaper
+        if: contains(inputs.custom, 'privacy-wallpaper')
+        continue-on-error: true
+        shell: bash
+        run: |
+          PRIVACY_WALLPAPER=$(echo '${{ inputs.custom }}' | base64 -d | jq -r '.["privacy-wallpaper"] // "N"')
+          if [ "$PRIVACY_WALLPAPER" != "N" ] && [ "$PRIVACY_WALLPAPER" != "" ]; then
+            echo "Downloading privacy wallpaper from: $PRIVACY_WALLPAPER"
+            mkdir -p ./res/privacy
+            curl -L -o ./res/privacy/wallpaper.jpg "$PRIVACY_WALLPAPER" || true
+            if [ -f ./res/privacy/wallpaper.jpg ]; then
+              echo "Privacy wallpaper downloaded successfully"
+            else
+              echo "Failed to download privacy wallpaper"
+            fi
+          fi
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v1
