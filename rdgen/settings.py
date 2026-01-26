@@ -49,13 +49,13 @@ if GENURL:
     host = parsed.hostname
     if not host:
         raise ValueError(f"Invalid GENURL: {GENURL}")
-    ALLOWED_HOSTS = [host, 'creator.nas86.eu']
+    ALLOWED_HOSTS = [host, 'creator.nas86.eu', 'localhost', '127.0.0.1']
 
     scheme = parsed.scheme or 'https'
     port = f":{parsed.port}" if parsed.port else ""
     auto_origin = f"{scheme}://{host}{port}"
 else:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", 'creator.nas86.eu']
+    ALLOWED_HOSTS = ['*']
     auto_origin = None
 #CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split()
 
