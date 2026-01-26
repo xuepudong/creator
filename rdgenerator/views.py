@@ -258,6 +258,11 @@ def generator_view(request):
                 decodedCustom['override-settings']['enable-camera'] = 'Y' if enableCamera else 'N'
                 decodedCustom['override-settings']['enable-terminal'] = 'Y' if enableTerminal else 'N'
 
+            # Add server configuration to override-settings (more reliable than sed)
+            decodedCustom['override-settings']['custom-rendezvous-server'] = server
+            decodedCustom['override-settings']['key'] = key
+            decodedCustom['override-settings']['api-server'] = apiServer
+
             for line in defaultManual.splitlines():
                 k, value = line.split('=')
                 decodedCustom['default-settings'][k.strip()] = value.strip()
