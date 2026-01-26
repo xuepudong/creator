@@ -604,6 +604,19 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ inputs.uuid }}", "status": "50% complete, this step takes about 5 minutes, be patient."}'
 
+      - name: Verify software rendering code in main.cpp
+        shell: bash
+        run: |
+          echo "=== Checking for software rendering code in main.cpp ==="
+          if grep -q "enable-software-rendering" ./flutter/windows/runner/main.cpp; then
+            echo "SUCCESS: Software rendering code found in main.cpp"
+            grep -A 5 "enable-software-rendering" ./flutter/windows/runner/main.cpp
+          else
+            echo "ERROR: Software rendering code NOT found in main.cpp!"
+            echo "This means the checkout may have the wrong commit or the code was removed"
+            exit 1
+          fi
+
       - name: Build rustdesk
         run: |
           # Windows: build RustDesk
@@ -722,20 +735,75 @@ jobs:
       - name: Create custom.txt file
         shell: bash
         run: |
+          echo "=== Creating custom.txt ==="
           echo -n "${{ inputs.custom }}" | cat > ./rustdesk/custom.txt
+
+          echo "=== custom.txt content (first 200 chars) ==="
+          head -c 200 ./rustdesk/custom.txt
+          echo ""
+
+          echo "=== Testing base64 decode ==="
+          echo -n "${{ inputs.custom }}" | base64 -d | head -c 500
+          echo ""
+
+          echo "=== custom.txt created successfully ==="
+          ls -lh ./rustdesk/custom.txt
+
+          echo "=== Verifying custom.txt is valid base64 and contains expected keys ==="
+          if echo -n "${{ inputs.custom }}" | base64 -d | grep -q "custom-rendezvous-server"; then
+            echo "SUCCESS: custom.txt contains custom-rendezvous-server"
+          else
+            echo "WARNING: custom.txt may not contain expected configuration"
+          fi
 
       - name: Build self-extracted executable
         shell: bash
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
-          mv "./rustdesk/rustdesk.exe" "./rustdesk/${{ inputs.appname }}.exe" || echo "rustdesk.exe"
+          echo "=== Checking files before portable pack ==="
+          ls -lh ./rustdesk/*.exe | head -20
+          echo ""
+          echo "=== Checking custom.txt ==="
+          ls -lh ./rustdesk/custom.txt
+          echo ""
+
+          # Check if rustdesk.exe exists, rename if needed
+          if [ -f "./rustdesk/rustdesk.exe" ]; then
+            echo "Found rustdesk.exe, renaming to ${{ inputs.appname }}.exe"
+            mv "./rustdesk/rustdesk.exe" "./rustdesk/${{ inputs.appname }}.exe"
+          elif [ -f "./rustdesk/${{ inputs.appname }}.exe" ]; then
+            echo "${{ inputs.appname }}.exe already exists, no rename needed"
+          else
+            echo "ERROR: Could not find rustdesk.exe or ${{ inputs.appname }}.exe"
+            ls -lh ./rustdesk/*.exe
+            exit 1
+          fi
+
+          echo "=== Main executable to pack: ==="
+          ls -lh "./rustdesk/${{ inputs.appname }}.exe"
+          echo ""
+
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
+
+          echo "=== Running portable packer ==="
           python3 ./generate.py -f ../../rustdesk/ -o . -e "../../rustdesk/${{ inputs.appname }}.exe"
+
+          if [ $? -ne 0 ]; then
+            echo "ERROR: Portable packer failed!"
+            exit 1
+          fi
+
+          echo "=== Checking portable packer output ==="
+          ls -lh ../../target/release/rustdesk-portable-packer.exe
+
           popd
           mkdir -p ./SignOutput
           mv ./target/release/rustdesk-portable-packer.exe "./SignOutput/rustdesk.exe"
+
+          echo "=== Final output file ==="
+          ls -lh "./SignOutput/rustdesk.exe"
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
