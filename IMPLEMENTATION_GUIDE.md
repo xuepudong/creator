@@ -490,10 +490,10 @@ cd /Users/xuepudong/kaifa/creator
 | 添加复制按钮 | add-copy | ✅ 完成 | desktop_home_page.dart | 已实现并推送 |
 | 隐藏设置菜单 | hide-menu-bar | ✅ 完成 | desktop_tab_page.dart | 已实现并推送 |
 | 隐藏服务启停 | hide-service-start-stop | ✅ 完成 | connection_page.dart | 已实现并推送 |
-| 配置PIN | unlock-pin | ⏳ 待实现 | ui_interface.rs + Flutter UI | 需要PIN输入对话框 |
-| 不创建卸载 | no-uninstall | ⏳ 待实现 | workflow/*.yml | 需要修改打包逻辑 |
-| 生成便携版 | disable-install | ⏳ 待实现 | build.py | 需要修改构建脚本 |
-| 隐私背景图 | privacy-wallpaper | ⏳ 待实现 | privacy_mode.rs | 需要资源下载+应用 |
+| 不创建卸载 | no-uninstall | ✅ 完成 | platform/windows.rs | 已实现并推送 |
+| 配置PIN | unlock-pin | ✅ 完成 | desktop_tab_page.dart | PIN验证对话框已实现 |
+| 生成便携版 | disable-install | ✅ 完成 | generator-windows.yml | Workflow条件跳过MSI |
+| 隐私背景图 | privacy-wallpaper | ✅ 完成 | win_topmost_window.rs + workflow | 下载并应用壁纸 |
 
 ---
 
@@ -556,6 +556,51 @@ cd /Users/xuepudong/kaifa/creator
 **实现**:
 - 在 startServiceWidget() 的 offstage 条件中添加检查
 - 当 `mainGetBuiltinOption('hide-service-start-stop')` 为 'Y' 时隐藏启动服务按钮
+
+### 10. no-uninstall - 不创建卸载快捷方式
+**文件**: `src/platform/windows.rs`
+**实现**:
+- 在 install_me() 函数中检查配置
+- 读取 `BUILTIN_SETTINGS['no-uninstall']`
+- 如果为 'Y'，跳过创建卸载快捷方式的VBS脚本生成
+- 在Start Menu复制和cleanup时也跳过卸载相关文件
+
+### 11. unlock-pin - 配置PIN码验证
+**文件**: `flutter/lib/desktop/pages/desktop_tab_page.dart`
+**实现**:
+- 在 _DesktopTabPageState.initState() 中添加 _checkUnlockPin() 调用
+- 读取 `mainGetBuiltinOption('unlock-pin')` 获取配置的PIN
+- 如果PIN不为空，显示模态对话框要求输入PIN
+- 对话框不可关闭（WillPopScope返回false）
+- 只有输入正确PIN才能继续使用应用
+- 错误PIN会显示错误提示并重新要求输入
+
+### 12. disable-install - 只生成便携版
+**文件**: `.github/workflows/generator-windows.yml`
+**实现**:
+- 添加 DISABLE_INSTALL 环境变量读取custom配置
+- 修改 "Build msi" 步骤添加条件: `if: env.DISABLE_INSTALL != 'true'`
+- 分离zip操作为两个步骤：
+  - "zip exe and msi": 当不禁用安装时
+  - "zip exe only": 仅便携模式时只打包exe
+- MSI相关的rename和upload步骤都添加条件判断
+- 最终效果：当启用此选项时，workflow只生成并上传EXE文件
+
+### 13. privacy-wallpaper - 隐私模式自定义背景图
+**文件**: `src/privacy_mode/win_topmost_window.rs`, `.github/workflows/generator-windows.yml`
+**实现**:
+- **Workflow部分**:
+  - 添加 "Download privacy wallpaper" 步骤
+  - 从custom配置读取wallpaper URL
+  - 使用curl下载图片到 ./res/privacy/wallpaper.jpg
+  - 构建时图片会被打包到应用目录
+- **Rust部分**:
+  - 添加 set_privacy_wallpaper() 函数
+  - 检查 `BUILTIN_SETTINGS['privacy-wallpaper']` 配置
+  - 查找 res/privacy/wallpaper.jpg 文件
+  - 使用Windows API SystemParametersInfoW 设置壁纸
+  - 在 turn_on_privacy() 中调用该函数
+  - 效果：进入隐私模式时自动设置自定义壁纸
 
 ---
 

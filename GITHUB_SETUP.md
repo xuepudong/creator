@@ -1,6 +1,6 @@
 # 🔧 GitHub配置指南
 
-## ✅ 已完成的功能（10个）
+## ✅ 已完成的功能（13个）- 100%完成！
 
 以下功能已经完全实现并推送到 `xuepudong/RuijieDesk` 仓库：
 
@@ -17,6 +17,11 @@
 8. ✅ **add-copy** - 添加复制按钮
 9. ✅ **hide-menu-bar** - 隐藏设置菜单
 10. ✅ **hide-service-start-stop** - 隐藏服务启停按钮
+
+### 高级功能（3个）
+11. ✅ **unlock-pin** - 配置PIN码验证
+12. ✅ **disable-install** - 只生成便携版
+13. ✅ **privacy-wallpaper** - 隐私模式自定义背景图
 
 ---
 
@@ -59,6 +64,10 @@ git push origin master
 
 **提交历史**：
 ```
+a2c8a5105 - Implement privacy-wallpaper feature to set custom wallpaper during privacy mode
+d03e87c - Add workflow step to download privacy wallpaper
+b0589bbe3 - Implement unlock-pin feature for PIN code verification on startup
+339e476 - Implement disable-install feature for Windows workflow
 290f51a - Implement no-uninstall feature
 706f697 - Implement hide-menu-bar and hide-service-start-stop UI features
 55e288e - Implement hide-quit, hide-password, and add-copy UI features
@@ -72,10 +81,12 @@ git push origin master
 - `src/updater.rs` - 禁用更新检查
 - `src/server/connection.rs` - 禁止退出隐私模式
 - `src/platform/windows.rs` - 不创建卸载快捷方式
+- `src/privacy_mode/win_topmost_window.rs` - 隐私模式壁纸设置
 - `flutter/lib/desktop/pages/desktop_home_page.dart` - 密码相关UI
-- `flutter/lib/desktop/pages/desktop_tab_page.dart` - 隐藏设置菜单
+- `flutter/lib/desktop/pages/desktop_tab_page.dart` - PIN验证 + 隐藏设置菜单
 - `flutter/lib/desktop/pages/connection_page.dart` - 隐藏服务按钮
 - `flutter/lib/desktop/widgets/remote_toolbar.dart` - 工具栏UI
+- `.github/workflows/generator-windows.yml` - 便携版 + 壁纸下载
 
 ---
 
@@ -94,7 +105,7 @@ git push origin master
 - Server: `你的服务器地址`
 - Key: `你的密钥`
 
-**自定义功能** (勾选测试)：
+**自定义功能** (全部勾选测试)：
 - ✅ 禁用启动时检查更新
 - ✅ 允许简单密码
 - ✅ 禁止退出隐私模式
@@ -105,6 +116,9 @@ git push origin master
 - ✅ 隐藏设置菜单
 - ✅ 隐藏服务启停按钮
 - ✅ 不创建卸载快捷方式
+- ✅ PIN码验证（可选：输入测试PIN如"1234"）
+- ✅ 只生成便携版（跳过MSI）
+- ✅ 隐私模式壁纸（可选：提供图片URL）
 
 **平台**：选择 Windows
 
@@ -127,6 +141,9 @@ git push origin master
 - ✅ 开始菜单没有"Uninstall XXX"快捷方式
 - ✅ 隐私模式无法被远程用户退出
 - ✅ 没有服务启动/停止按钮
+- ✅ 启动时要求输入PIN（如果配置了）
+- ✅ 只下载到EXE文件，无MSI（如果启用了disable-install）
+- ✅ 进入隐私模式时壁纸改变（如果配置了wallpaper）
 
 ---
 
@@ -207,54 +224,19 @@ final isEnabled = bind.mainGetBuiltinOption(key: 'option-name') == 'Y';
 
 ---
 
-## 📦 下一步开发（剩余3个功能）
-
-### 11. unlock-pin - 配置PIN码 ⏳
-**难度**：中等
-**需要**：
-- Flutter PIN输入对话框UI
-- 启动时验证逻辑
-- 设置界面PIN配置
-
-**实现位置**：
-- `flutter/lib/common/widgets/pin_dialog.dart` (新建)
-- `src/ui_interface.rs` - 验证逻辑
-- `flutter/lib/desktop/pages/desktop_home_page.dart` - 启动验证
-
-### 12. disable-install - 只生成便携版 ⏳
-**难度**：低
-**需要**：
-- Workflow检测配置
-- 跳过安装程序生成步骤
-
-**实现位置**：
-- `.github/workflows/generator-windows*.yml`
-- 修改artifact上传逻辑
-
-### 13. privacy-wallpaper - 隐私模式背景图 ⏳
-**难度**：高
-**需要**：
-- Workflow下载图片到resources
-- 隐私模式激活时设置壁纸
-- Windows API调用
-
-**实现位置**：
-- `.github/workflows/*.yml` - 下载步骤
-- `src/privacy_mode.rs` - 应用壁纸
-- `src/privacy_mode/win_topmost_window.rs` - Windows实现
-
----
-
 ## 🎉 总结
 
-✅ **10个核心功能已完成**，覆盖了：
+✅ **13个核心功能已全部完成**，覆盖了：
 - 所有UI隐藏/显示功能
 - 密码策略和权限控制
 - 更新检查控制
 - 安装卸载控制
+- PIN码安全验证
+- 便携版构建选项
+- 隐私模式自定义壁纸
 
 🔄 **Creator需要push权限**才能完成部署
 
-📝 **详细文档**：见 `IMPLEMENTATION_GUIDE.md`
+📝 **详细文档**：见 `IMPLEMENTATION_GUIDE.md` 和 `FINAL_REPORT.md`
 
-💡 **测试建议**：先测试已完成的10个功能，确认workflow和配置系统正常工作，再继续开发剩余3个功能
+💡 **测试建议**：测试所有13个功能，确认workflow和配置系统正常工作，准备发布v1.0！
