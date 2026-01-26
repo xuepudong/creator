@@ -755,12 +755,15 @@ jobs:
             '<?xml version="1.0" encoding="utf-8"?>' | Out-File -FilePath ./Package/Config.wxi -Encoding UTF8
             '<Include>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
             '  <?define Version="${{ env.VERSION }}" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
-            '  <?define Product="RustDesk" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
-            '  <?define Description="RustDesk Remote Desktop" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
-            '  <?define Manufacturer="Purslane Ltd" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
-            '  <?define ProductLower="rustdesk" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
-            '  <?define RegKeyRoot="Software\RustDesk" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
+            '  <?define Product="${{ inputs.appname }}" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
+            '  <?define Description="${{ inputs.appname }} Remote Desktop" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
+            $compname = '${{ fromJson(inputs.extras).compname }}'
+            '  <?define Manufacturer="' + $compname + '" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
+            $productLower = '${{ inputs.appname }}'.ToLower()
+            '  <?define ProductLower="' + $productLower + '" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
+            '  <?define RegKeyRoot="Software\${{ inputs.appname }}" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
             '  <?define BuildDir="../../rustdesk" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
+            '  <?define BuildDate="$(Get-Date -Format "yyyy-MM-dd")" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
             '  <?define UpgradeCode="{59C1BC08-0A9A-4A72-8BD4-7B28BD03C00A}" ?>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
             '</Include>' | Out-File -FilePath ./Package/Config.wxi -Append -Encoding UTF8
             echo "Config.wxi created successfully:"
